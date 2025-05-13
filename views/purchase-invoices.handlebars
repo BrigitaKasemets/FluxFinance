@@ -1,0 +1,234 @@
+<div id="purchase-invoices-app">
+  <h2>Purchase Invoices</h2>
+
+  <div class="actions">
+    <button id="new-invoice-btn" class="btn btn-primary" @click="openModal">New invoice</button>
+  </div>
+
+  <div class="invoices-list">
+    {{#if invoices.length}}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Payment Method</th>
+            <th>Currency</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each invoices}}
+            <tr>
+              <td>{{this.invoice_number}}</td>
+              <td>{{this.date}}</td>
+              <td>{{this.description}}</td>
+              <td>{{this.payment_method}}</td>
+              <td>{{this.currency}}</td>
+              <td>{{formatCurrency this.total this.currency}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{else}}
+      <p class="no-data">No purchase invoices found. Create your first invoice by clicking the "New invoice" button.</p>
+    {{/if}}
+  </div>
+
+  <!-- Invoice Modal -->
+  <div id="invoice-modal" class="modal" v-if="showModal">
+    <div class="modal-content">
+      <h3>New Purchase Invoice</h3>
+
+      <form @submit.prevent="saveInvoice">
+        <div class="form-group">
+          <label for="invoice-date">Date</label>
+          <input type="date" id="invoice-date" v-model="invoice.date" required>
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-number">Invoice Number</label>
+          <input type="text" id="invoice-number" v-model="invoice.invoice_number" required>
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-description">Description</label>
+          <input type="text" id="invoice-description" v-model="invoice.description" required>
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-quantity">Quantity</label>
+          <input
+            type="number"
+            id="invoice-quantity"
+            v-model="invoice.quantity"
+            min="0.01"
+            step="0.01"
+            @input="calculateTotal"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-payment-method">Payment Method</label>
+          <select id="invoice-payment-method" v-model="invoice.payment_method" required>
+            <option value="">Select payment method</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="cash">Cash</option>
+            <option value="check">Check</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-currency">Currency</label>
+          <select id="invoice-currency" v-model="invoice.currency" required>
+            <option value="">Select currency</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+            <option value="JPY">JPY</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-vat-percentage">VAT Percentage</label>
+          <input
+            type="number"
+            id="invoice-vat-percentage"
+            v-model="invoice.vat_percentage"
+            min="0"
+            max="100"
+            step="0.01"
+            @input="calculateTotal"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="invoice-price">Price</label>
+          <input
+            type="number"
+            id="invoice-price"
+            v-model="invoice.price"
+            min="0.01"
+            step="0.01"
+            @input="calculateTotal"
+            required
+          >
+        </div>
+
+        <div class="form-group total">
+          <label>Total Amount</label>
+          <div id="invoice-total" class="total-amount">
+            \{{ formattedTotal }}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="invoice-cancel-btn" class="btn" @click="closeModal">Cancel</button>
+          <button type="submit" id="invoice-save-btn" class="btn btn-primary" :disabled="isSaving">
+            \{{ isSaving ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const { createApp } = Vue;
+
+  createApp({
+    data() {
+      return {
+        showModal: false,
+        isSaving: false,
+        invoice: {
+          invoice_number: '',
+          date: new Date().toISOString().split('T')[0], // Today's date
+          description: '',
+          quantity: 1,
+          payment_method: '',
+          currency: 'USD',
+          vat_percentage: 20,
+          price: 0
+        },
+        total: 0
+      }
+    },
+    computed: {
+      formattedTotal() {
+        const formatter = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: this.invoice.currency || 'USD'
+        });
+        return formatter.format(this.total);
+      }
+    },
+    methods: {
+      openModal() {
+        this.showModal = true;
+        this.resetForm();
+      },
+      closeModal() {
+        this.showModal = false;
+      },
+      resetForm() {
+        this.invoice = {
+          invoice_number: '',
+          date: new Date().toISOString().split('T')[0],
+          description: '',
+          quantity: 1,
+          payment_method: '',
+          currency: 'USD',
+          vat_percentage: 20,
+          price: 0
+        };
+        this.calculateTotal();
+      },
+      calculateTotal() {
+        const price = parseFloat(this.invoice.price) || 0;
+        const quantity = parseFloat(this.invoice.quantity) || 0;
+        const vatPercentage = parseFloat(this.invoice.vat_percentage) || 0;
+
+        const subtotal = price * quantity;
+        const vatAmount = (subtotal * vatPercentage) / 100;
+        this.total = subtotal + vatAmount;
+      },
+      async saveInvoice() {
+        this.isSaving = true;
+
+        try {
+          const response = await fetch('/purchase-invoices', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.invoice)
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            alert(data.error || 'An error occurred while saving the invoice');
+            return;
+          }
+
+          // Close modal and reload page to show the new invoice
+          this.closeModal();
+          window.location.reload();
+        } catch (error) {
+          alert('An error occurred while saving the invoice');
+          console.error('Save invoice error:', error);
+        } finally {
+          this.isSaving = false;
+        }
+      }
+    },
+    mounted() {
+      this.calculateTotal();
+    }
+  }).mount('#purchase-invoices-app');
+</script>

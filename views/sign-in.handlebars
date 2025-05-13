@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - FluxFinance</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="sign-in-container">
+    <h1>Sign In to FluxFinance</h1>
+
+    <form id="sign-in-form" method="post" action="/auth/sign-in">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          aria-required="true"
+          required
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          aria-required="true"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      {{#if error}}
+      <div class="error-message" role="alert">
+        {{error}}
+      </div>
+      {{/if}}
+
+      <input type="hidden" name="originalUrl" value="{{originalUrl}}">
+
+      <button type="submit" class="btn btn-primary">
+        Sign In
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('sign-in-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const originalUrl = document.querySelector('input[name="originalUrl"]').value;
+
+      try {
+        const response = await fetch('/auth/sign-in', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email,
+            password
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const errorElement = document.querySelector('.error-message');
+          if (!errorElement) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.setAttribute('role', 'alert');
+            errorDiv.textContent = data.error || 'An error occurred during sign in';
+
+            const formGroup = document.querySelector('.form-group:last-of-type');
+            formGroup.parentNode.insertBefore(errorDiv, formGroup.nextSibling);
+          } else {
+            errorElement.textContent = data.error || 'An error occurred during sign in';
+            errorElement.style.display = 'block';
+          }
+          return;
+        }
+
+        // Redirect to the original URL or the URL returned by the server
+        window.location.href = data.redirectUrl || originalUrl || '/';
+      } catch (error) {
+        console.error('Sign in error:', error);
+      }
+    });
+  </script>
+</body>
+</html>

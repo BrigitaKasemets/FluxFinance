@@ -1,20 +1,21 @@
 # FluxFinance
 
-FluxFinance is a lightweight web-based accounting application built with [Bun](https://bun.sh/), Express, SQLite, and Handlebars. It features a simple Vue-powered frontend (via CDN) and aims to provide efficient and fast financial management for small businesses.
+FluxFinance is a lightweight web-based financial management application built with Node.js, Express, SQLite, and Handlebars. It features a simple frontend with JavaScript enhancements and aims to provide efficient financial management for small businesses.
 
 ## ✅ Features
 
-* Lightweight accounting management
-* Handlebars templating for dynamic server-side views
-* Vue-enhanced UI components using CDN
-* Persistent data using SQLite
-* Fast and modern backend powered by Bun
+* User authentication system
+* Purchase invoice management
+* Automatic VAT and total calculation
+* Responsive and accessible UI
+* Persistent data using SQLite database
 
 ## 🛠 Tech Stack
 
-* **Backend**: [Bun](https://bun.sh/), [Express](https://expressjs.com/), [SQLite](https://www.sqlite.org/)
+* **Backend**: [Node.js](https://nodejs.org/), [Express](https://expressjs.com/), [SQLite](https://www.sqlite.org/)
 * **Templating**: [Handlebars](https://handlebarsjs.com/)
-* **Frontend**: [Vue.js (via CDN)](https://cdn.jsdelivr.net/npm/vue@3)
+* **Frontend**: Vanilla JavaScript with minimal dependencies
+* **Testing**: [Bun](https://bun.sh/) for Test-Driven Development (TDD)
 
 
 
@@ -23,24 +24,34 @@ FluxFinance is a lightweight web-based accounting application built with [Bun](h
 ### 1. Install Dependencies
 
 ```bash
-bun install
+npm install
 ```
 
 ### 2. Initialize the Database
 
 ```bash
-bun run init:db
+npm run init:db
 ```
 
-This will create a new SQLite database with the required schema.
+This will create a new SQLite database with the required schema and add a sample user:
+- Email: admin@fluxfinance.com
+- Password: password123
 
 ### 3. Run the Application
 
 ```bash
-bun run start
+npm start
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 4. Development Mode
+
+To run the application in development mode with automatic reloading:
+
+```bash
+npm run dev
+```
 
 
 ## 📁 Project Structure
@@ -48,14 +59,47 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 fluxfinance/
 ├── views/              # Handlebars templates
-├── public/             # Static assets (CSS, JS, icons)
-├── routes/             # Express route modules
-├── db/                 # SQLite DB and schema setup
-├── app.js              # Main server entry point
-├── init-db.js          # DB initialization script
-└── bun.lockb           # Bun lockfile
+│   ├── layouts/        # Layout templates
+│   ├── error.handlebars
+│   ├── home.handlebars
+│   ├── purchase-invoices.handlebars
+│   └── sign-in.handlebars
+├── public/             # Static assets
+│   └── css/            # CSS stylesheets
+├── tests/              # Test files
+│   ├── signin.test.ts  # Authentication tests
+│   └── purchase-invoice.test.ts # Purchase invoice tests
+├── db/                 # SQLite database
+├── app.js              # Main application file
+├── init-db.ts          # Database initialization script
+└── package.json        # Project configuration
 ```
 
+## 🧪 Testing
+
+The project follows Test-Driven Development (TDD) principles. Tests are written using Bun's test framework.
+
+To run the tests:
+
+```bash
+npm test
+```
+
+The tests are designed to fail initially, as per TDD methodology. As you implement the features, the tests will start passing.
+
+## 🔒 Authentication
+
+The application includes a simple authentication system:
+- Unauthenticated users are redirected to the sign-in page when accessing protected routes
+- Protected routes include `/purchase-invoices` and `/invoices`
+- Authentication state is maintained using cookies
+
+## 📊 Purchase Invoices
+
+The purchase invoice feature allows users to:
+- View a list of purchase invoices
+- Create new purchase invoices with details like date, description, quantity, etc.
+- Automatic calculation of totals based on price, quantity, and VAT percentage
 
 ## 📃 License
 

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">FluxFinance</h1>
+      <nav class="main-menu">
+        <ul>
+          <li><a href="/">Dashboard</a></li>
+          <li><a href="/sales">Sales</a></li>
+          <li><a href="/purchase-invoices">Purchase invoices</a></li>
+        </ul>
+      </nav>
+      <div class="user-menu">
+        {{#if isAuthenticated}}
+          <form action="/auth/sign-out" method="post">
+            <button type="submit" class="btn-link">Sign out</button>
+          </form>
+        {{else}}
+          <a href="/auth/sign-in">Sign in</a>
+        {{/if}}
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    {{{body}}}
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 FluxFinance Team</p>
+    </div>
+  </footer>
+</body>
+</html>

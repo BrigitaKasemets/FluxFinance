@@ -1,0 +1,12 @@
+<div class="error-page">
+  <h2>Error</h2>
+  <p>{{message}}</p>
+  
+  {{#if error}}
+    <div class="error-details">
+      <pre>{{error.stack}}</pre>
+    </div>
+  {{/if}}
+  
+  <p><a href="/">Return to homepage</a></p>
+</div>
