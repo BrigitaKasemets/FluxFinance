@@ -123,7 +123,7 @@ app.get('/auth/sign-in', (req, res) => {
 });
 
 app.post('/auth/sign-in', async (req, res) => {
-  const { email, password: plainPassword } = req.body;
+  const { email } = req.body; // We're not using the password in this demo
   const db = req.db;
 
   try {
@@ -135,7 +135,8 @@ app.post('/auth/sign-in', async (req, res) => {
     }
 
     // In a real app, we would verify the password hash here
-    // For simplicity, we'll just check if the email exists
+    // For demonstration purposes, we're skipping password verification
+    // This is not secure and should not be used in production
 
     // Set authentication cookie
     res.setHeader('Set-Cookie', 'authenticated=true; Path=/; HttpOnly');
@@ -151,7 +152,8 @@ app.post('/auth/sign-in', async (req, res) => {
   }
 });
 
-app.post('/auth/sign-out', (req, res) => {
+app.post('/auth/sign-out', (_, res) => {
+  // Use underscore for unused parameters
   res.setHeader('Set-Cookie', 'authenticated=false; Path=/; HttpOnly; Max-Age=0');
   res.redirect('/');
 });
@@ -227,7 +229,8 @@ app.post('/purchase-invoices', async (req, res) => {
 });
 
 // Error handling
-app.use((err, req, res, next) => {
+app.use((err, _, res, __) => {
+  // Use underscores for unused parameters
   console.error('Error:', err);
   console.error('Stack:', err.stack);
   res.status(500).render('error', {
