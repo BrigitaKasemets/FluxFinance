@@ -1,0 +1,17 @@
+{
+  "name": "fluxfinance",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/jsdom": "latest",
+    "jsdom": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
