@@ -1,0 +1,2 @@
+# FluxFinance
+An accounting app
