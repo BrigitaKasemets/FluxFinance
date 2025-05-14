@@ -91,7 +91,7 @@ The tests are designed to fail initially, as per TDD methodology. As you impleme
 
 The application includes a simple authentication system:
 - Unauthenticated users are redirected to the sign-in page when accessing protected routes
-- Protected routes include `/purchase-invoices` and `/invoices`
+- Protected routes include `/purchase-invoices`
 - Authentication state is maintained using cookies
 
 ## 📊 Purchase Invoices

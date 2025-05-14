@@ -70,3 +70,119 @@ test("unauthenticated visitor is shown sign-in form when accessing protected URL
   expect(emailInput?.getAttribute("aria-required")).toBe("true");
   expect(passwordInput?.getAttribute("aria-required")).toBe("true");
 });
+
+test("entering invalid credentials shows error message", async () => {
+  // Prepare invalid login data
+  const invalidCredentials = {
+    email: "nonexistent@example.com",
+    password: "wrongpassword"
+  };
+
+  // Submit the login form with invalid credentials
+  const response = await fetch("http://localhost:3000/auth/sign-in", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(invalidCredentials)
+  });
+
+  // Check that the response is not successful (401 Unauthorized)
+  expect(response.ok).toBe(false);
+  expect(response.status).toBe(401);
+
+  // Check the error message in the JSON response
+  const data = await response.json();
+  expect(data.error).toBe("Email or password is incorrect");
+});
+
+test("authenticated user can directly access protected URL", async () => {
+  // Create a fetch with authentication cookie
+  const response = await fetch("http://localhost:3000/purchase-invoices", {
+    headers: {
+      Cookie: "authenticated=true" 
+    }
+  });
+
+  // Verify the response is successful (200 OK, not a redirect)
+  expect(response.status).toBe(200);
+  
+  // Check that the response contains the expected page content
+  const html = await response.text();
+  expect(html).toContain("Purchase Invoices"); // The page should contain some invoice-related content
+  
+  // Make sure we don't have a sign-in form on the page
+  const dom = new JSDOM(html);
+  const signInForm = dom.window.document.querySelector("form#sign-in-form");
+  expect(signInForm).toBeNull();
+});
+
+test("successful login redirects to originally requested page", async () => {
+  // The URL we want to access after login
+  const originalUrl = "/purchase-invoices";
+  
+  // First, try accessing a protected URL to trigger the redirect and set originalUrl
+  await fetch(`http://localhost:3000${originalUrl}`, {
+    redirect: "manual" // Don't follow redirects automatically
+  });
+  
+  // Now log in with valid credentials
+  const validCredentials = {
+    email: "admin@fluxfinance.com",
+    password: "password123"
+  };
+  
+  const response = await fetch("http://localhost:3000/auth/sign-in", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(validCredentials)
+  });
+  
+  // Check that the response is successful
+  expect(response.ok).toBe(true);
+  
+  // Check that we get redirected to the original URL
+  const data = await response.json();
+  expect(data.success).toBe(true);
+  expect(data.redirectUrl).toBe(originalUrl);
+  
+  // In a real browser, the JavaScript would trigger window.location.href = redirectUrl
+  // To simulate this, we would check that the browser's URL changes to the original URL
+  // But in a test environment, we can only check that the correct redirectUrl is returned
+});
+
+test("sign-in form is keyboard navigable (WCAG compliance)", async () => {
+  const response = await fetch("http://localhost:3000/auth/sign-in");
+  const html = await response.text();
+  
+  const dom = new JSDOM(html);
+  const { document } = dom.window;
+  
+  // Get all focusable elements in the form
+  const form = document.querySelector("form#sign-in-form");
+  const focusableElements = form?.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  
+  // Check that we have focusable elements
+  expect(focusableElements?.length).toBeGreaterThan(0);
+  
+  // Check that inputs have proper attributes for screen readers
+  const inputs = form?.querySelectorAll("input:not([type='hidden'])");
+  
+  for (const input of inputs || []) {
+    // Every input should have a corresponding label or aria-label
+    const inputId = input.getAttribute("id");
+    if (inputId) {
+      const label = document.querySelector(`label[for="${inputId}"]`);
+      expect(label).not.toBeNull();
+    } else {
+      // If no id, should have aria-label or aria-labelledby
+      const hasAriaLabel = input.hasAttribute("aria-label") || input.hasAttribute("aria-labelledby");
+      // We'll exempt hidden fields from the check
+      expect(hasAriaLabel).toBe(true);
+    }
+  }
+});

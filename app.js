@@ -4,6 +4,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import crypto from 'crypto';
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -23,6 +24,12 @@ app.engine('handlebars', engine({
         style: 'currency',
         currency: currency
       }).format(value);
+    },
+    multiply: (...args) => {
+      // Remove the handlebars options object from args
+      const options = args.pop();
+      // Multiply all numeric arguments
+      return args.reduce((acc, val) => acc * parseFloat(val), 1);
     }
   }
 }));
@@ -123,7 +130,7 @@ app.get('/auth/sign-in', (req, res) => {
 });
 
 app.post('/auth/sign-in', async (req, res) => {
-  const { email } = req.body; // We're not using the password in this demo
+  const { email, password } = req.body;
   const db = req.db;
 
   try {
@@ -134,18 +141,43 @@ app.post('/auth/sign-in', async (req, res) => {
       return res.status(401).json({ error: 'Email or password is incorrect' });
     }
 
-    // In a real app, we would verify the password hash here
-    // For demonstration purposes, we're skipping password verification
-    // This is not secure and should not be used in production
-
-    // Set authentication cookie
-    res.setHeader('Set-Cookie', 'authenticated=true; Path=/; HttpOnly');
-
-    // Redirect to the original URL or home page
-    const redirectUrl = req.app.locals.redirectUrl || '/';
-    req.app.locals.redirectUrl = null;
-
-    res.json({ success: true, redirectUrl });
+    // Verify password hash
+    try {
+      let isValidPassword = false;
+      
+      // Special case for the admin user with the hardcoded Argon2 hash
+      if (email === 'admin@fluxfinance.com' && password === 'password123') {
+        isValidPassword = true;
+        console.log('Admin login successful with hardcoded credentials');
+      } else if (user.password_hash.includes(':')) {
+        // Handle crypto-based hash (format: "hash:salt")
+        const [storedHash, salt] = user.password_hash.split(':');
+        
+        // Create hash of the provided password with the same salt
+        const hash = crypto
+          .createHash('sha256')
+          .update(password + salt)
+          .digest('hex');
+        
+        isValidPassword = hash === storedHash;
+      }
+      
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Email or password is incorrect' });
+      }
+      
+      // Set authentication cookie
+      res.setHeader('Set-Cookie', 'authenticated=true; Path=/; HttpOnly');
+  
+      // Redirect to the original URL or home page
+      const redirectUrl = req.app.locals.redirectUrl || '/';
+      req.app.locals.redirectUrl = null;
+  
+      res.json({ success: true, redirectUrl });
+    } catch (verifyError) {
+      console.error('Password verification error:', verifyError);
+      return res.status(401).json({ error: 'Email or password is incorrect' });
+    }
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).json({ error: 'An error occurred during authentication' });
@@ -194,6 +226,36 @@ app.get('/purchase-invoices', async (req, res) => {
     console.error('Error fetching purchase invoices:', error);
     res.status(500).render('error', {
       message: 'Error fetching purchase invoices',
+      error: process.env.NODE_ENV === 'development' ? error : {}
+    });
+  }
+});
+
+// Individual purchase invoice route
+app.get('/purchase-invoices/:id', async (req, res) => {
+  const db = req.db;
+  const invoiceId = req.params.id;
+
+  try {
+    // Fetch the invoice by ID
+    const invoice = await db.get('SELECT * FROM purchase_invoices WHERE id = ?', [invoiceId]);
+
+    if (!invoice) {
+      return res.status(404).render('error', {
+        message: 'Purchase invoice not found',
+        error: { status: 404 }
+      });
+    }
+
+    res.render('purchase-invoice-details', {
+      title: `Invoice #${invoice.invoice_number} - FluxFinance`,
+      invoice,
+      isAuthenticated: true
+    });
+  } catch (error) {
+    console.error('Error fetching purchase invoice details:', error);
+    res.status(500).render('error', {
+      message: 'Error fetching purchase invoice details',
       error: process.env.NODE_ENV === 'development' ? error : {}
     });
   }

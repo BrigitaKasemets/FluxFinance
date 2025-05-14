@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const { Database } = sqlite3;
 
@@ -60,10 +61,16 @@ db.exec(createTables, (err) => {
     VALUES (?, ?, ?)
   `;
 
+  // Generate salt and hash for password "password123"
+  const salt = "fluxsalt";
+  const passwordToHash = "password123" + salt;
+  const hash = crypto.createHash('sha256').update(passwordToHash).digest('hex');
+  const passwordHash = hash + ":" + salt;
+
   // Sample user with password "password123"
   db.run(insertUserSQL, [
     'admin@fluxfinance.com',
-    '$argon2id$v=19$m=65536,t=2,p=1$tFq+9AVr1bfPxQdh6E8DQRhEXg/M/SqYCNu6gVdRRNs$GzJ8PuBi+K+BVojzPfS5mjnC8OpLGtv8KJqF99eP6a4',
+    passwordHash,
     'Admin User'
   ], (err) => {
     if (err) {
