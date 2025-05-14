@@ -1,0 +1,135 @@
+<div class="invoice-details">
+  <div class="header">
+    <h2>Purchase Invoice Details</h2>
+    <a href="/purchase-invoices" class="btn btn-secondary">Back to All Invoices</a>
+  </div>
+
+  <div class="invoice-container">
+    <div class="invoice-header">
+      <h3>Invoice #{{invoice.invoice_number}}</h3>
+      <p class="date">Date: {{invoice.date}}</p>
+    </div>
+
+    <div class="invoice-body">
+      <div class="info-group">
+        <label>Description:</label>
+        <p>{{invoice.description}}</p>
+      </div>
+
+      <div class="info-row">
+        <div class="info-group">
+          <label>Quantity:</label>
+          <p>{{invoice.quantity}}</p>
+        </div>
+        
+        <div class="info-group">
+          <label>Unit Price:</label>
+          <p>{{formatCurrency invoice.price invoice.currency}}</p>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-group">
+          <label>Payment Method:</label>
+          <p>{{invoice.payment_method}}</p>
+        </div>
+        
+        <div class="info-group">
+          <label>Currency:</label>
+          <p>{{invoice.currency}}</p>
+        </div>
+      </div>
+
+      <div class="info-group">
+        <label>VAT ({{invoice.vat_percentage}}%):</label>
+        <p>{{formatCurrency (multiply invoice.price invoice.quantity invoice.vat_percentage 0.01) invoice.currency}}</p>
+      </div>
+
+      <div class="info-group total">
+        <label>Total Amount:</label>
+        <p class="total-amount">{{formatCurrency invoice.total invoice.currency}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .invoice-details {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+
+  .invoice-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: var(--box-shadow);
+    padding: 30px;
+  }
+
+  .invoice-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
+  .date {
+    color: #777;
+    margin-top: 5px;
+  }
+
+  .info-group {
+    margin-bottom: 15px;
+  }
+
+  .info-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+  }
+
+  .info-group p {
+    margin: 0;
+    font-size: 1.1em;
+  }
+
+  .info-row {
+    display: flex;
+    gap: 30px;
+  }
+
+  .info-row .info-group {
+    flex: 1;
+  }
+
+  .total {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .total-amount {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+</style>
+
+<script>
+  // Helper function to calculate VAT amount if needed
+  function calculateVat() {
+    const price = {{invoice.price}};
+    const quantity = {{invoice.quantity}};
+    const vatPercentage = {{invoice.vat_percentage}};
+    
+    return (price * quantity * vatPercentage) / 100;
+  }
+</script>

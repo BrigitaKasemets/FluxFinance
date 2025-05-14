@@ -20,7 +20,7 @@
         </thead>
         <tbody>
           {{#each invoices}}
-            <tr>
+            <tr class="invoice-row" onclick="window.location.href='/purchase-invoices/{{this.id}}'">
               <td>{{this.invoice_number}}</td>
               <td>{{this.date}}</td>
               <td>{{this.description}}</td>
