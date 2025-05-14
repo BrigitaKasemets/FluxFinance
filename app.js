@@ -43,7 +43,7 @@ app.use((req, res, next) => {
     const isAuthenticated = req.headers.cookie?.includes('authenticated=true');
 
     // Protected routes prefixes
-    const protectedRoutePrefixes = ['/invoices', '/purchase-invoices'];
+    const protectedRoutePrefixes = ['/invoices', '/purchase-invoices', '/sales'];
 
     // Check if the requested path is protected
     const isProtectedRoute = protectedRoutePrefixes.some(prefix =>
@@ -156,6 +156,26 @@ app.post('/auth/sign-out', (_, res) => {
   // Use underscore for unused parameters
   res.setHeader('Set-Cookie', 'authenticated=false; Path=/; HttpOnly; Max-Age=0');
   res.redirect('/');
+});
+
+// Sales routes
+app.get('/sales', async (_, res) => {
+  // We're not using the database in this placeholder route
+
+  try {
+    // In a real app, we would fetch sales data from the database
+    // For now, we'll just render a placeholder page
+    res.render('sales', {
+      title: 'Sales - FluxFinance',
+      isAuthenticated: true
+    });
+  } catch (error) {
+    console.error('Error fetching sales:', error);
+    res.status(500).render('error', {
+      message: 'Error fetching sales',
+      error: process.env.NODE_ENV === 'development' ? error : {}
+    });
+  }
 });
 
 // Purchase invoices routes
