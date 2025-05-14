@@ -15,7 +15,7 @@ FluxFinance is a lightweight web-based financial management application built wi
 * **Backend**: [Node.js](https://nodejs.org/), [Express](https://expressjs.com/), [SQLite](https://www.sqlite.org/)
 * **Templating**: [Handlebars](https://handlebarsjs.com/)
 * **Frontend**: Vanilla JavaScript with minimal dependencies
-* **Testing**: [Bun](https://bun.sh/) for Test-Driven Development (TDD)
+* **Testing**: [Playwright](https://playwright.dev/) for end-to-end testing and Test-Driven Development (TDD)
 
 
 
@@ -77,12 +77,18 @@ fluxfinance/
 
 ## 🧪 Testing
 
-The project follows Test-Driven Development (TDD) principles. Tests are written using Bun's test framework.
+The project follows Test-Driven Development (TDD) principles. Tests are written using Playwright test framework for end-to-end testing.
 
 To run the tests:
 
 ```bash
 npm test
+```
+
+To view the test report:
+
+```bash
+npx playwright show-report
 ```
 
 The tests are designed to fail initially, as per TDD methodology. As you implement the features, the tests will start passing.

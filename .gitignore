@@ -1,10 +1,16 @@
-# dependencies (bun install)
+# dependencies
 node_modules
 
 # output
 out
 dist
 *.tgz
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # code coverage
 coverage
@@ -32,3 +38,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
