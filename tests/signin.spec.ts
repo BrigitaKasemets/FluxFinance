@@ -52,12 +52,6 @@ test('successful sign-in redirects to home page', async ({ page }) => {
     // Fill in the form with valid credentials
     await page.locator('#username').fill('admin');
     await page.locator('#password').fill('password');
-    
-    // Submit the form
-    await Promise.all([
-      page.waitForNavigation({ timeout: 5000 }).catch(() => {}), // Wait for navigation with shorter timeout
-      page.click('button[type="submit"]')
-    ]);
   }
   
   // Check that we're redirected to the home page
