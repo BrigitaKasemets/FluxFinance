@@ -38,17 +38,6 @@ Projekt kasutab Test-Driven Development (TDD) metoodikat, mis tähendab:
 4. Käivita testid uuesti (nüüd peaksid need õnnestuma)
 5. Refaktoori koodi vastavalt vajadusele
 
-### Testide Ajutine Ebaõnnestumise Märkimine 
-
-Kui tead, et test peaks ebaõnnestuma, kuni vastav funktsionaalsus on implementeeritud, kasuta `test.fail()` meetodit:
-
-```typescript
-test('my not-yet-implemented feature test', async ({ page }) => {
-  test.fail(); // Märgi test kui eeldatavalt ebaõnnestuvaks
-  
-  // Testi loogika...
-});
-```
 
 ## Peamised Testklassid
 

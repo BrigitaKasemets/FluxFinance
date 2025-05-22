@@ -27,7 +27,7 @@ app.engine('handlebars', engine({
     },
     multiply: (...args) => {
       // Remove the handlebars options object from args
-      const options = args.pop();
+      args.pop(); // Remove options object
       // Multiply all numeric arguments
       return args.reduce((acc, val) => acc * parseFloat(val), 1);
     }
@@ -91,7 +91,8 @@ app.use(async (req, res, next) => {
       try {
         db = await open({
           filename: join(__dirname, 'db/fluxfinance.db'),
-          driver: sqlite3.Database
+          driver: sqlite3.Database,
+          mode: sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
         });
         console.log('Database connection established successfully');
       } catch (dbError) {
@@ -144,7 +145,7 @@ app.post('/auth/sign-in', async (req, res) => {
     // Verify password hash
     try {
       let isValidPassword = false;
-      
+
       // Special case for the admin user with the hardcoded Argon2 hash
       if (email === 'admin@fluxfinance.com' && password === 'password123') {
         isValidPassword = true;
@@ -152,27 +153,27 @@ app.post('/auth/sign-in', async (req, res) => {
       } else if (user.password_hash.includes(':')) {
         // Handle crypto-based hash (format: "hash:salt")
         const [storedHash, salt] = user.password_hash.split(':');
-        
+
         // Create hash of the provided password with the same salt
         const hash = crypto
           .createHash('sha256')
           .update(password + salt)
           .digest('hex');
-        
+
         isValidPassword = hash === storedHash;
       }
-      
+
       if (!isValidPassword) {
         return res.status(401).json({ error: 'Email or password is incorrect' });
       }
-      
+
       // Set authentication cookie
       res.setHeader('Set-Cookie', 'authenticated=true; Path=/; HttpOnly');
-  
+
       // Redirect to the original URL or home page
       const redirectUrl = req.app.locals.redirectUrl || '/';
       req.app.locals.redirectUrl = null;
-  
+
       res.json({ success: true, redirectUrl });
     } catch (verifyError) {
       console.error('Password verification error:', verifyError);
